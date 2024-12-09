@@ -1,4 +1,5 @@
 #include "controller.h"
+#include "elf.h"
 #include "utility.h"
 #include <chrono>
 #include <exception>
@@ -75,11 +76,10 @@ std::vector<byte> read_file(const char *path) {
 enum class RunMode { Testing = 0,
 					 Interactive = 1 };
 
-
-void actuall(char *ram_path, char *input_path, char *device_path, RunMode mode) {
+void actual(char *ram_path, char *input_path, char *device_path, RunMode mode) {
 	using namespace std::chrono;
-
-	auto ram_data = read_file(ram_path);
+	auto elf = ElfReader(ram_path);
+	auto sections = elf.getSections();
 	auto in_data = read_file(input_path);
 	Serial serial;
 	serial.init_port(device_path);
@@ -92,16 +92,18 @@ void actuall(char *ram_path, char *input_path, char *device_path, RunMode mode) 
 	info("done ping pong\n");
 	std::this_thread::sleep_for(1s);
 
-	controller.upload_ram(ram_data);
+	for (auto &sec: sections) {
+		controller.upload_ram(sec.start, sec.end, sec.content);
+		std::this_thread::sleep_for(10ms);
+		controller.verify_ram(sec.start, sec.end, sec.content);
+		std::this_thread::sleep_for(10ms);
+	}
 	info("done upload ram\n");
 	std::this_thread::sleep_for(1s);
 
 	controller.upload_input(in_data);
 	info("done upload input\n");
 	std::this_thread::sleep_for(1s);
-
-	controller.verify_ram(ram_data);
-	info("done verify ram\n");
 
 	// return;
 	if (mode == RunMode::Interactive)
@@ -123,7 +125,7 @@ int main(int argc, char **argv) {
 
 	auto run_mode = param == 'I' ? RunMode::Interactive : RunMode::Testing;
 	try {
-		actuall(ram_path, input_path, comport, run_mode);
+		actual(ram_path, input_path, comport, run_mode);
 	} catch (std::exception &e) {
 		std::cerr << e.what() << std::endl;
 		return 1;

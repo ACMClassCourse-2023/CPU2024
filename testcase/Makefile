@@ -8,6 +8,8 @@ TESTCASE_SRCS := $(shell find $(PWD) -name '*.c')
 DATAFILES := $(TESTCASE_SRCS:.c=.data)
 DUMPFILES := $(TESTCASE_SRCS:.c=.dump)
 
+.SECONDARY: $(TESTCASE_SRCS:.c=.elf)
+
 # compile tools
 AS := $(RISCV_TOOLCHAIN)as
 CC := $(RISCV_TOOLCHAIN)gcc

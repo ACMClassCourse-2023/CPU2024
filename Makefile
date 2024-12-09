@@ -47,7 +47,7 @@ build_sim_test: testcases _no_testcase_name_check
 
 build_fpga_test: testcases _no_testcase_name_check $(TESTSPACE_DIR)
 	@cp $(FPGA_TESTCASE_DIR)/*$(name)*.c $(TESTSPACE_DIR)/test.c
-	@cp $(FPGA_TESTCASE_DIR)/*$(name)*.data $(TESTSPACE_DIR)/test.data
+	@cp $(FPGA_TESTCASE_DIR)/*$(name)*.elf $(TESTSPACE_DIR)/test.elf
 	@cp $(FPGA_TESTCASE_DIR)/*$(name)*.dump $(TESTSPACE_DIR)/test.dump
 # sometimes the input and output file not exist
 	@rm -f $(TESTSPACE_DIR)/test.in $(TESTSPACE_DIR)/test.ans
@@ -66,7 +66,7 @@ fpga_run_mode := -T # or -I
 
 # Please manually load .bit file to FPGA
 run_fpga: build_fpga_test
-	cd $(TESTSPACE_DIR) && if [ -f test.in ]; then $(PWD)/fpga/fpga test.data test.in $(fpga_device) $(fpga_run_mode); else $(PWD)/fpga/fpga test.data $(fpga_device) $(fpga_run_mode); fi
+	cd $(TESTSPACE_DIR) && if [ -f test.in ]; then $(PWD)/fpga/fpga test.elf test.in $(fpga_device) $(fpga_run_mode); else $(PWD)/fpga/fpga test.elf $(fpga_device) $(fpga_run_mode); fi
 
 clean:
 	rm -f $(TESTSPACE_DIR)/test*
